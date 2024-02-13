@@ -2,16 +2,27 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, LogIn } from "lucide-vue-next"
-import { ref } from "vue"
+import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { agent } from "@/lib/utils"
+import { agent, getUser } from "@/lib/utils"
+import { User } from "@/types/user"
 
 const username = ref("")
 const password = ref("")
 const isLoading = ref(false)
 const error = ref("")
 const router = useRouter()
+
+const user = ref<User | null>(null)
+
+onMounted(async () => {
+  user.value = await getUser()
+})
+
+if (user) {
+  router.push("/")
+}
 
 const handleSubmit = async () => {
   isLoading.value = true
@@ -22,6 +33,7 @@ const handleSubmit = async () => {
     })
     if (res.status === 200) {
       error.value = ""
+      router.go(0)
       router.push("/")
     } else throw new Error()
   } catch {
@@ -47,6 +59,7 @@ const handleSubmit = async () => {
       placeholder="Password"
       v-model="password"
       :disabled="isLoading"
+      @keyup.enter="handleSubmit"
     />
 
     <Button @click="handleSubmit" :disabled="isLoading">

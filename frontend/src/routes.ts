@@ -1,12 +1,19 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 import { getUser } from "./lib/utils"
-import HomeVue from "./views/Home.vue"
-import LoginVue from "./views/Login.vue"
 
 const routes = [
-  { path: "/login", component: LoginVue },
-  { path: "/", component: HomeVue, meta: { requiresAuth: true } },
+  { path: "/login", component: () => import("./views/Login.vue") },
+  {
+    path: "/",
+    component: () => import("./views/Home.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/logout",
+    component: () => import("./views/LogOut.vue"),
+    meta: { requiresAuth: true },
+  },
   { path: "/:catchAll(.*)", redirect: "/" },
 ]
 
