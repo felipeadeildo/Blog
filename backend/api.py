@@ -31,6 +31,13 @@ def login():
     return message("Success", 200)
 
 
+@bp.get("/logout")
+@login_required()
+def logout():
+    session.pop("user_id")
+    return message("Success", 200)
+
+
 @bp.get("/me")
 @login_required()
 def me():
@@ -51,9 +58,10 @@ def me():
 @bp.post("/post")
 @login_required()
 def create_post():
-    title = request.form.get("title")
-    content = request.form.get("content")
-    banner = request.form.get("banner")
+    data = request.get_json()
+    title = data.get("title")
+    content = data.get("content")
+    banner = data.get("banner")
 
     if any(not x for x in (title, content, banner)):
         return message("Missing title or content", 400)
@@ -68,7 +76,7 @@ def create_post():
         "select last_insert_rowid() from posts"
     ).fetchone()[0]
     post = db.execute(
-        "select id, title, content, banner from posts where id = ?",
+        "select posts.id, posts.title, posts.content, posts.banner, users.id, users.username, users.email from posts join users on posts.post_by_user_id = users.id where posts.id = ?",
         (last_row_id,),
     ).fetchone()
 
@@ -79,6 +87,11 @@ def create_post():
         title=post[1],
         content=post[2],
         banner=post[3],
+        user={
+            "id": post[4],
+            "username": post[5],
+            "email": post[6],
+        },
     )
 
 
@@ -100,14 +113,20 @@ def get_posts():
         ).fetchall()
     else:
         posts = db.execute(
-            "select id, title, content, banner from posts"
+            "select posts.id, posts.title, posts.content, posts.banner, users.id, users.username, users.email from posts join users on posts.post_by_user_id = users.id"
         ).fetchall()
 
     return message(
         "Success",
         200,
         posts=[
-            {"id": x[0], "title": x[1], "content": x[2], "banner": x[3]}
+            {
+                "id": x[0],
+                "title": x[1],
+                "content": x[2],
+                "banner": x[3],
+                "user": {"id": x[4], "username": x[5], "email": x[6]},
+            }
             for x in posts
         ],
     )
