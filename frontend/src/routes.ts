@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 import { getUser } from "./lib/utils"
+import { useSession } from "./stores/session"
 
 const routes = [
   { path: "/login", component: () => import("./views/Login.vue") },
@@ -23,9 +24,11 @@ export const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
-  const user = await getUser()
+  const session = useSession()
+  session.setUser(await getUser())
+
   if (to.meta.requiresAuth) {
-    if (!user) {
+    if (!session.isLoggedIn) {
       next({ path: "/login" })
     } else {
       next()
