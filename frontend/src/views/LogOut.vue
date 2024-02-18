@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useSession } from "@/stores/session"
 import { onMounted } from "vue"
-import { agent } from "@/lib/utils"
+import { useRouter } from "vue-router"
+
 const router = useRouter()
 
+const session = useSession()
 onMounted(async () => {
-  await agent.get("/logout")
-  router.go(0)
+  await session.logout()
+  router.push("/login")
 })
 </script>
 

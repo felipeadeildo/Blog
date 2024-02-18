@@ -17,18 +17,21 @@ def login():
 
     db = get_conn()
     user = db.execute(
-        "select id, password from users where username = ?", (username,)
+        "select id, password, email from users where username = ?", (username,)
     ).fetchone()
     if user is None:
         return message("Username / password incorrect", 401)
-    user_id, user_password = user
+    user_id, user_password, user_email = user
     if not checkpw(
         f"{password}".encode("utf-8"), user_password.encode("utf-8")
     ):
         return message("Username / password incorrect", 401)
 
     session["user_id"] = user_id
-    return message("Success", 200)
+    return message(
+        "Success",
+        user={"id": user_id, "username": username, "email": user_email},
+    )
 
 
 @bp.get("/logout")

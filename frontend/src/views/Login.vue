@@ -2,11 +2,10 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, LogIn } from "lucide-vue-next"
-import { onMounted, ref } from "vue"
+import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { agent, getUser } from "@/lib/utils"
-import { User } from "@/types/user"
+import { useSession } from "@/stores/session"
 
 const username = ref("")
 const password = ref("")
@@ -14,28 +13,17 @@ const isLoading = ref(false)
 const error = ref("")
 const router = useRouter()
 
-const user = ref<User | null>(null)
+const user = useSession()
 
-onMounted(async () => {
-  user.value = await getUser()
-})
-
-if (user) {
+if (user.isLoggedIn) {
   router.push("/")
 }
 
 const handleSubmit = async () => {
   isLoading.value = true
   try {
-    const res = await agent.post("/login", {
-      username: username.value,
-      password: password.value,
-    })
-    if (res.status === 200) {
-      error.value = ""
-      router.go(0)
-      router.push("/")
-    } else throw new Error()
+    await user.login(username.value, password.value)
+    if (user.isLoggedIn) router.push("/")
   } catch {
     error.value = "Invalid username or password"
   }
